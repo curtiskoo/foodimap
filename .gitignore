@@ -1,0 +1,6 @@
+# file: ~/.gitignore
+.DS_Store
+.idea
+scraper/scraper_test/.idea
+resources/passwords.json
+resources/static_ll_points.json
