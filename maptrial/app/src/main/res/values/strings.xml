@@ -1,0 +1,32 @@
+<resources>
+    <string name="app_name">maptrial</string>
+    <string name="title_activity_maps">Map</string>
+    <string name="map_style_json">
+       [
+  {
+    \"elementType\": \"labels\",
+    \"stylers\": [
+      {
+        \"visibility\": \"off\"
+      }
+    ]
+  },
+  {
+    \"featureType\": \"administrative.land_parcel\",
+    \"stylers\": [
+      {
+        \"visibility\": \"off\"
+      }
+    ]
+  },
+  {
+    \"featureType\": \"administrative.neighborhood\",
+    \"stylers\": [
+      {
+        \"visibility\": \"off\"
+      }
+    ]
+  }
+]
+    </string>
+</resources>
