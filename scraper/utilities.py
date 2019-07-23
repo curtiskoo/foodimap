@@ -25,3 +25,8 @@ def init_mongo_client():
     client = pymongo.MongoClient(connection_string)
     return client
 
+
+def get_yelp_headers():
+    api_key = passwords['yelp_api_key']
+    headers = {"Authorization": "Bearer {}".format(api_key)}
+    return headers
