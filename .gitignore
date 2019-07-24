@@ -4,3 +4,4 @@
 scraper/scraper_test/.idea
 resources/passwords.json
 resources/static_ll_points.json
+Android App/app/src/debug/res/values/google_maps_api.xml
