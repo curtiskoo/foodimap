@@ -1,0 +1,24 @@
+<resources>
+    <string name="app_name">maptrial</string>
+    <string name="title_activity_maps">Map</string>
+    <string name="map_style_json">
+       [
+  {
+    \"elementType\": \"labels\",
+    \"stylers\": [
+      {
+        \"visibility\": \"on\"
+      }
+    ]
+  },
+  {
+    \"featureType\": \"poi\",
+    \"stylers\": [
+      {
+        \"visibility\": \"off\"
+      }
+    ]
+  }
+]
+    </string>
+</resources>
