@@ -16,6 +16,10 @@ import android.location.Location;
 import android.location.LocationManager;
 import android.os.Bundle;
 import android.util.Log;
+
+import com.google.android.gms.location.FusedLocationProviderClient;
+import com.google.android.gms.location.LocationServices;
+import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.android.material.tabs.TabLayout;
 import androidx.core.app.ActivityCompat.OnRequestPermissionsResultCallback;
 
@@ -28,6 +32,7 @@ public class MainActivity extends FragmentActivity implements OnRequestPermissio
     private ListTabFragment listTabFragment;
     private LocationManager locationManager;
     private Location lastKnown;
+    private FusedLocationProviderClient fusedLocationClient;
     private static final int PERMISSIONS_REQUEST_ACCESS_FINE_LOCATION = 22;
 
     @Override
@@ -35,19 +40,21 @@ public class MainActivity extends FragmentActivity implements OnRequestPermissio
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
+        fusedLocationClient = LocationServices.getFusedLocationProviderClient(this);
+
         locationManager = (LocationManager) getSystemService(Context.LOCATION_SERVICE);
         try {
             lastKnown = locationManager.getLastKnownLocation(locationManager.getBestProvider(new Criteria(), true));
             System.out.println(lastKnown);
             mapsTabFragment = new MapsTabFragment(lastKnown);
         } catch (SecurityException e) {
-            lastKnown = null;
+//            lastKnown = null;
         } catch (IllegalArgumentException e) {
-            lastKnown = null;
+//            lastKnown = null;
         } finally {
             if (mapsTabFragment == null) {
                 System.out.println("mapstabfragment null");
-                mapsTabFragment = new MapsTabFragment();
+                mapsTabFragment = new MapsTabFragment(lastKnown);
             }
         }
 
@@ -69,12 +76,34 @@ public class MainActivity extends FragmentActivity implements OnRequestPermissio
         if (ContextCompat.checkSelfPermission(this,
                 android.Manifest.permission.ACCESS_FINE_LOCATION)
                 == PackageManager.PERMISSION_GRANTED) {
+            getFusedCurrentLocation();
+            System.out.println("Last Known " + lastKnown);
             locationHandler = new LocationHandler(this);
             setupLocationHandlerObservers();
         } else {
             ActivityCompat.requestPermissions(this,
                     new String[]{android.Manifest.permission.ACCESS_FINE_LOCATION},
                     PERMISSIONS_REQUEST_ACCESS_FINE_LOCATION);
+        }
+    }
+
+    private void getFusedCurrentLocation() {
+        try {
+            fusedLocationClient.getLastLocation()
+                    .addOnSuccessListener(this, new OnSuccessListener<Location>() {
+                        @Override
+                        public void onSuccess(Location location) {
+                            System.out.println("FusedLocation " + location);
+                            // Got last known location. In some rare situations this can be null.
+                            if (location != null && lastKnown == null) {
+                                System.out.println("FusedLocation2 " + location);
+                                lastKnown = location;
+                                mapsTabFragment.setLastKnown(lastKnown);
+                            }
+                        }
+                    });
+        } catch (SecurityException e) {
+            System.out.println(e);
         }
     }
 

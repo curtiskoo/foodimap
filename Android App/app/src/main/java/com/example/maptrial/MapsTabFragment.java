@@ -37,7 +37,7 @@ import java.util.Observer;
 public class MapsTabFragment extends Fragment
         implements OnMapReadyCallback, OnMyLocationButtonClickListener, OnMyLocationClickListener, Observer {
 
-    private static GoogleMap mMap;
+    private GoogleMap mMap;
     private Boolean locationEnabled = false;
     private Location lastKnown;
     public Context context;
@@ -168,5 +168,12 @@ public class MapsTabFragment extends Fragment
                 forceOnSetMyLocation((Location) o);
             }
         }
+    }
+
+    public void setLastKnown(Location lastKnown) {
+        this.locationEnabled = false;
+        this.lastKnown = lastKnown;
+        updateLocationUI(lastKnown);
+        this.locationEnabled = true;
     }
 }

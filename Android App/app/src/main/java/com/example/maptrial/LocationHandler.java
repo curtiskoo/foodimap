@@ -32,7 +32,7 @@ public class LocationHandler extends Observable {
         locationListener = new LocationListener() {
             @Override
             public void onLocationChanged(Location location) {
-//                System.out.println(location);
+                System.out.println(location);
                 setChanged();
                 notifyObservers(location);
             }
@@ -55,6 +55,7 @@ public class LocationHandler extends Observable {
 
         setChangedLocation();
         try {
+            System.out.println("locationlistner: " + locationListener);
             System.out.println("setting change");
             locationManager.requestLocationUpdates(LocationManager.NETWORK_PROVIDER, 0, 0, locationListener);
         } catch (SecurityException e) {
