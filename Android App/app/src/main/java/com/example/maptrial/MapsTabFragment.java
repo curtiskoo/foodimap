@@ -1,8 +1,9 @@
 package com.example.maptrial;
 
-import android.Manifest;
+import android.app.AlarmManager;
+import android.app.PendingIntent;
 import android.content.Context;
-import android.content.pm.PackageManager;
+import android.content.Intent;
 import android.location.Criteria;
 import android.location.Location;
 import android.location.LocationManager;
@@ -14,8 +15,7 @@ import android.view.ViewGroup;
 import android.widget.Toast;
 
 import androidx.annotation.NonNull;
-import androidx.core.app.ActivityCompat;
-import androidx.core.content.ContextCompat;
+import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
 import androidx.fragment.app.FragmentManager;
 import androidx.fragment.app.FragmentTransaction;
@@ -31,16 +31,24 @@ import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.MapStyleOptions;
 import com.google.android.gms.maps.model.MarkerOptions;
 
-import static android.content.Context.LOCATION_SERVICE;
-import static androidx.core.content.ContextCompat.getSystemService;
-
+import java.util.Observable;
+import java.util.Observer;
 
 public class MapsTabFragment extends Fragment
-        implements OnMapReadyCallback, OnMyLocationButtonClickListener, OnMyLocationClickListener {
+        implements OnMapReadyCallback, OnMyLocationButtonClickListener, OnMyLocationClickListener, Observer {
 
-    private static final int PERMISSIONS_REQUEST_ACCESS_FINE_LOCATION = 22;
-    private GoogleMap mMap;
-    private LocationManager locationManager;
+    private static GoogleMap mMap;
+    private Boolean locationEnabled = false;
+    private Location lastKnown;
+    public Context context;
+
+    public MapsTabFragment(Location lastKnown) {
+        if (lastKnown != null) {
+            this.lastKnown = lastKnown;
+        }
+    }
+
+    public MapsTabFragment() {}
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
@@ -65,6 +73,9 @@ public class MapsTabFragment extends Fragment
 
     @Override
     public void onMapReady(GoogleMap googleMap) {
+        System.out.println("map ready");
+        System.out.println(googleMap);
+        System.out.println("context: " + context + getActivity());
         mMap = googleMap;
 
         boolean success = mMap.setMapStyle(new MapStyleOptions(getResources().getString(R.string.map_style_json)));
@@ -77,15 +88,26 @@ public class MapsTabFragment extends Fragment
 
         mMap.addMarker(new MarkerOptions().position(place).title("Marker in Place"));
 
-        getLocationPermission();
-        mMap.setOnMyLocationButtonClickListener(this);
-        mMap.setOnMyLocationClickListener(this);
+        if (lastKnown != null) {
+            System.out.println(1);
+            forceOnSetMyLocation(lastKnown);
+            place = new LatLng(lastKnown.getLatitude(), lastKnown.getLongitude());
+            mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(place, 15));
+            update(new LocationHandler(null), lastKnown);
+        } else {
+            System.out.println(2);
+            forceOnSetMyLocation(null);
+        }
 
     }
 
     @Override
     public boolean onMyLocationButtonClick() {
-        updateLocationUI();
+//        updateLocationUI();
+        System.out.println(this);
+        System.out.println(mMap);
+        System.out.println(context);
+        System.out.println(getActivity());
         Toast.makeText(getActivity(), "MyLocation button clicked", Toast.LENGTH_SHORT).show();
         return false;
     }
@@ -95,61 +117,18 @@ public class MapsTabFragment extends Fragment
         Toast.makeText(getActivity(), "Current location:\n" + location, Toast.LENGTH_LONG).show();
     }
 
-    private void getLocationPermission() {
-        if (ContextCompat.checkSelfPermission(getActivity(),
-                android.Manifest.permission.ACCESS_FINE_LOCATION)
-                == PackageManager.PERMISSION_GRANTED) {
-            mMap.setMyLocationEnabled(true);
-            updateLocationUI();
-        } else {
-            ActivityCompat.requestPermissions(getActivity(),
-                    new String[]{android.Manifest.permission.ACCESS_FINE_LOCATION},
-                    PERMISSIONS_REQUEST_ACCESS_FINE_LOCATION);
-        }
-    }
 
-    @Override
-    public void onRequestPermissionsResult(int requestCode,
-                                           @NonNull String permissions[],
-                                           @NonNull int[] grantResults) {
-//        mLocationPermissionGranted = false;
-        switch (requestCode) {
-            case PERMISSIONS_REQUEST_ACCESS_FINE_LOCATION: {
-                // If request is cancelled, the result arrays are empty.
-                if (grantResults.length > 0
-                        && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
-                    Log.d("request", "requested location");
-                    try {
-                        mMap.setMyLocationEnabled(true);
-//                        mMap.getUiSettings().setMyLocationButtonEnabled(true);
-                        updateLocationUI();
-                    } catch (SecurityException e) {
-                        Log.e("Exception: %s", e.getMessage());
-                    }
-                }
-            }
-        }
-//        updateLocationUI();
-    }
-
-    private void updateLocationUI() {
+    private void updateLocationUI(Location location) {
+        System.out.println("here in new updatelocationui");
         if (mMap == null) {
             return;
         }
-
-        locationManager = (LocationManager) getActivity().getSystemService(LOCATION_SERVICE);
-        Criteria criteria = new Criteria();
-
-        String provider = locationManager.getBestProvider(criteria, true);
-
-        Location location;
-        try {
-            location = locationManager.getLastKnownLocation(provider);
-        } catch (SecurityException e) {
-            location = null;
-        }
-        if (location != null)
-        {
+        if (location != null) {
+            if (!locationEnabled) {
+                LatLng temp = new LatLng(location.getLatitude(), location.getLongitude());
+                mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(temp, 15));
+                return;
+            }
             mMap.animateCamera(CameraUpdateFactory.newLatLngZoom(new LatLng(location.getLatitude(), location.getLongitude()), 13));
 
             CameraPosition cameraPosition = new CameraPosition.Builder()
@@ -158,7 +137,36 @@ public class MapsTabFragment extends Fragment
                     .build();                   // Creates a CameraPosition from the builder
             mMap.animateCamera(CameraUpdateFactory.newCameraPosition(cameraPosition));
         }
-
     }
 
+    private void forceOnSetMyLocation(Location location) {
+        try {
+            System.out.println(1);
+            mMap.setMyLocationEnabled(true);
+            mMap.setOnMyLocationButtonClickListener(this);
+            mMap.setOnMyLocationClickListener(this);
+            if (location != null) {
+                updateLocationUI(location);
+            }
+            locationEnabled = true;
+        } catch (SecurityException e) {
+            System.out.println(e);
+            mMap.setMyLocationEnabled(false);
+            locationEnabled = false;
+        }
+    }
+
+
+    @Override
+    public void update(Observable observable, Object o) {
+        System.out.println("update called");
+        if (observable instanceof LocationHandler && mMap != null) {
+            System.out.println(o);
+            if (!locationEnabled) {
+                forceOnSetMyLocation((Location) o);
+            } else {
+                forceOnSetMyLocation((Location) o);
+            }
+        }
+    }
 }
