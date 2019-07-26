@@ -44,16 +44,15 @@ public class MainActivity extends FragmentActivity implements OnRequestPermissio
         try {
             lastKnown = locationManager.getLastKnownLocation(locationManager.getBestProvider(new Criteria(), true));
             System.out.println(lastKnown);
-            mapsTabFragment = new MapsTabFragment(lastKnown);
+//            mapsTabFragment = new MapsTabFragment(lastKnown);
         } catch (SecurityException e) {
 //            lastKnown = null;
         } catch (IllegalArgumentException e) {
 //            lastKnown = null;
         } finally {
-            if (mapsTabFragment == null) {
-                System.out.println("mapstabfragment null");
-                mapsTabFragment = new MapsTabFragment(lastKnown);
-            }
+//            if (mapsTabFragment == null) {
+//            System.out.println("mapstabfragment null");
+            mapsTabFragment = new MapsTabFragment(lastKnown);
         }
 
         listTabFragment = new ListTabFragment();
@@ -76,7 +75,7 @@ public class MainActivity extends FragmentActivity implements OnRequestPermissio
                 == PackageManager.PERMISSION_GRANTED) {
             getFusedCurrentLocation();
             System.out.println("Last Known " + lastKnown);
-            locationHandler = new LocationHandler(this);
+            locationHandler = new LocationHandler(this, fusedLocationClient);
             setupLocationHandlerObservers();
         } else {
             ActivityCompat.requestPermissions(this,
@@ -117,10 +116,10 @@ public class MainActivity extends FragmentActivity implements OnRequestPermissio
                         && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
                     try {
                         doRestart();
-                        System.out.println("permission granted in MainActivity");
-                        mapsTabFragment = new MapsTabFragment(lastKnown);
-                        locationHandler = new LocationHandler(this);
-                        setupLocationHandlerObservers();
+//                        System.out.println("permission granted in MainActivity");
+//                        mapsTabFragment = new MapsTabFragment(lastKnown);
+//                        locationHandler = new LocationHandler(this);
+//                        setupLocationHandlerObservers();
                     } catch (SecurityException e) {
                         Log.e("Exception: %s", e.getMessage());
                     }

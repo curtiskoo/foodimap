@@ -30,9 +30,11 @@ import java.util.Observer;
 public class MapsTabFragment extends Fragment
         implements OnMapReadyCallback, OnMyLocationButtonClickListener, OnMyLocationClickListener, Observer {
 
+    public static final int zoom = 15;
     private GoogleMap mMap;
     private Boolean locationEnabled = false;
     private Location lastKnown;
+    private Location currLocation;
     public Context context;
 
     public MapsTabFragment(Location lastKnown) {
@@ -85,8 +87,8 @@ public class MapsTabFragment extends Fragment
             System.out.println(1);
             forceOnSetMyLocation(lastKnown);
             place = new LatLng(lastKnown.getLatitude(), lastKnown.getLongitude());
-            mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(place, 15));
-            update(new LocationHandler(null), lastKnown);
+            mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(place, zoom));
+//            update(new LocationHandler(null), lastKnown);
         } else {
             System.out.println(2);
             forceOnSetMyLocation(null);
@@ -96,18 +98,14 @@ public class MapsTabFragment extends Fragment
 
     @Override
     public boolean onMyLocationButtonClick() {
-//        updateLocationUI();
-        System.out.println(this);
-        System.out.println(mMap);
-        System.out.println(context);
-        System.out.println(getActivity());
+        updateLocationUI(currLocation);
         Toast.makeText(getActivity(), "MyLocation button clicked", Toast.LENGTH_SHORT).show();
-        return false;
+        return true;
     }
 
     @Override
     public void onMyLocationClick(@NonNull Location location) {
-        Toast.makeText(getActivity(), "Current location:\n" + location, Toast.LENGTH_LONG).show();
+        Toast.makeText(getActivity(), "My Current location:\n" + currLocation + "\nGoogle:\n" + location, Toast.LENGTH_LONG).show();
     }
 
 
@@ -119,10 +117,10 @@ public class MapsTabFragment extends Fragment
         if (location != null) {
             if (!locationEnabled) {
                 LatLng temp = new LatLng(location.getLatitude(), location.getLongitude());
-                mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(temp, 15));
+                mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(temp, zoom));
                 return;
             }
-            mMap.animateCamera(CameraUpdateFactory.newLatLngZoom(new LatLng(location.getLatitude(), location.getLongitude()), 13));
+            mMap.animateCamera(CameraUpdateFactory.newLatLngZoom(new LatLng(location.getLatitude(), location.getLongitude()), zoom));
 
             CameraPosition cameraPosition = new CameraPosition.Builder()
                     .target(new LatLng(location.getLatitude(), location.getLongitude()))      // Sets the center of the map to location user
@@ -138,7 +136,7 @@ public class MapsTabFragment extends Fragment
             mMap.setMyLocationEnabled(true);
             mMap.setOnMyLocationButtonClickListener(this);
             mMap.setOnMyLocationClickListener(this);
-            if (location != null) {
+            if (location != null && !locationEnabled) {
                 updateLocationUI(location);
             }
             locationEnabled = true;
@@ -152,14 +150,10 @@ public class MapsTabFragment extends Fragment
 
     @Override
     public void update(Observable observable, Object o) {
-        System.out.println("update called");
         if (observable instanceof LocationHandler && mMap != null) {
             System.out.println(o);
-            if (!locationEnabled) {
-                forceOnSetMyLocation((Location) o);
-            } else {
-                forceOnSetMyLocation((Location) o);
-            }
+            forceOnSetMyLocation((Location) o);
+            setCurrLocation((Location) o);
         }
     }
 
@@ -168,5 +162,11 @@ public class MapsTabFragment extends Fragment
         this.lastKnown = lastKnown;
         updateLocationUI(lastKnown);
         this.locationEnabled = true;
+    }
+
+    public void setCurrLocation(Location currLocation) {
+        if (currLocation != null) {
+            this.currLocation = currLocation;
+        }
     }
 }
