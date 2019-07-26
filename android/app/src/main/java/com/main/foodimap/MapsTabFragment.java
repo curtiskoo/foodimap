@@ -1,4 +1,4 @@
-package com.example.foodimap;
+package com.main.foodimap;
 
 import android.content.Context;
 import android.location.Location;

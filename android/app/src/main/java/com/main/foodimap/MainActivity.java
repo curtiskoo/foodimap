@@ -1,4 +1,4 @@
-package com.example.foodimap;
+package com.main.foodimap;
 
 import androidx.annotation.NonNull;
 import androidx.core.app.ActivityCompat;

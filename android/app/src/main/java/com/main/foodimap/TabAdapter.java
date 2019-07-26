@@ -1,4 +1,4 @@
-package com.example.foodimap;
+package com.main.foodimap;
 
 import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;

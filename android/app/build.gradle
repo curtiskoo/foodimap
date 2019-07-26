@@ -2,9 +2,9 @@ apply plugin: 'com.android.application'
 
 android {
     compileSdkVersion 28
-    buildToolsVersion "29.0.0"
+    buildToolsVersion "29.0.1"
     defaultConfig {
-        applicationId "com.example.maptrial"
+        applicationId "com.main.foodimap"
         minSdkVersion 22
         targetSdkVersion 28
         versionCode 1

@@ -1,4 +1,4 @@
-package com.example.foodimap;
+package com.main.foodimap;
 
 import org.junit.Test;
 

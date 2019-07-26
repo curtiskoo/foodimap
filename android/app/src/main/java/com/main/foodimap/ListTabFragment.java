@@ -1,4 +1,4 @@
-package com.example.foodimap;
+package com.main.foodimap;
 
 import android.os.Bundle;
 import android.view.LayoutInflater;
