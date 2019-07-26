@@ -1,7 +1,6 @@
 import requests
 import math
-from utilities import init_mongo_client, load_json
-
+from utilities import init_mongo_client, load_json, get_yelp_headers
 
 def insert_records_yelp(db, lst):
     """
@@ -19,14 +18,14 @@ def insert_records_yelp(db, lst):
     print('Done Inserting Records!')
 
 
-def get_local_restaurants_yelp(client_secret, lat, lng, radius, offset=0):
+def get_local_restaurants_yelp(headers, lat, lng, radius, offset=0):
     """client_secret is your yelp api key"""
     radius = math.ceil(radius)
     if radius > 1000:
         raise Exception("Radius should not be > 1000m: {}m".format(radius))
 
     print("Scraping for: ({}, {}) {}m".format(lat, lng, radius))
-    headers = {"Authorization": "Bearer {}".format(client_secret)}
+    # headers = get_yelp_headers()
     data = {
         "categories": "food,restaurants",
         "latitude": lat,
@@ -69,18 +68,16 @@ def get_local_restaurants_yelp(client_secret, lat, lng, radius, offset=0):
     return res
 
 
-passwords = load_json("../resources/passwords.json")
-api_key = passwords['yelp_api_key']
-
 client = init_mongo_client()
 db = client.restaurant_db
 test = list(db.ll_points.find({}))
+yelp_headers = get_yelp_headers()
 # test.reverse()
 # test = test[:3000] #only grab rest of all coords from ll_points collection
 acc = 0
 for item in test:
     acc += 1
-    x = get_local_restaurants_yelp(api_key, item['lat'], item['lng'], item['radius'])
+    x = get_local_restaurants_yelp(yelp_headers, item['lat'], item['lng'], item['radius'])
     insert_records_yelp(db, x)
     print("Count: {}".format(acc))
     print()
