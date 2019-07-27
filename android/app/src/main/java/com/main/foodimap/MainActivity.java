@@ -19,6 +19,11 @@ import com.google.android.gms.location.FusedLocationProviderClient;
 import com.google.android.gms.location.LocationServices;
 import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.android.material.tabs.TabLayout;
+import com.main.foodimap.Fragments.ListTabFragment;
+import com.main.foodimap.Fragments.MapsTabFragment;
+import com.main.foodimap.Services.DataService;
+import com.main.foodimap.Services.LocationHandler;
+
 import androidx.core.app.ActivityCompat.OnRequestPermissionsResultCallback;
 
 public class MainActivity extends FragmentActivity implements OnRequestPermissionsResultCallback{
@@ -26,6 +31,7 @@ public class MainActivity extends FragmentActivity implements OnRequestPermissio
     private ViewPager pager;
     private TabAdapter adapter;
     private LocationHandler locationHandler;
+    private DataService dataService;
     private MapsTabFragment mapsTabFragment;
     private ListTabFragment listTabFragment;
     private LocationManager locationManager;
@@ -38,13 +44,15 @@ public class MainActivity extends FragmentActivity implements OnRequestPermissio
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
+        dataService = new DataService();
+
         fusedLocationClient = LocationServices.getFusedLocationProviderClient(this);
 
         locationManager = (LocationManager) getSystemService(Context.LOCATION_SERVICE);
         try {
             lastKnown = locationManager.getLastKnownLocation(locationManager.getBestProvider(new Criteria(), true));
             System.out.println(lastKnown);
-            mapsTabFragment = new MapsTabFragment(lastKnown);
+            mapsTabFragment = new MapsTabFragment(lastKnown, dataService);
         } catch (SecurityException e) {
 //            lastKnown = null;
         } catch (IllegalArgumentException e) {
@@ -52,9 +60,10 @@ public class MainActivity extends FragmentActivity implements OnRequestPermissio
         } finally {
             if (mapsTabFragment == null) {
                 System.out.println("mapstabfragment null");
-                mapsTabFragment = new MapsTabFragment(lastKnown);
+                mapsTabFragment = new MapsTabFragment(lastKnown, dataService);
             }
         }
+
 
         listTabFragment = new ListTabFragment();
         getLocationPermission();
@@ -68,6 +77,8 @@ public class MainActivity extends FragmentActivity implements OnRequestPermissio
         adapter.addFragment(mapsTabFragment, "Map");
         adapter.addFragment(listTabFragment, "List");
         pager.setAdapter(adapter);
+
+        setupObservers();
     }
 
     private void getLocationPermission() {
@@ -77,7 +88,7 @@ public class MainActivity extends FragmentActivity implements OnRequestPermissio
             getFusedCurrentLocation();
             System.out.println("Last Known " + lastKnown);
             locationHandler = new LocationHandler(this);
-            setupLocationHandlerObservers();
+            setupObservers();
         } else {
             ActivityCompat.requestPermissions(this,
                     new String[]{android.Manifest.permission.ACCESS_FINE_LOCATION},
@@ -118,9 +129,9 @@ public class MainActivity extends FragmentActivity implements OnRequestPermissio
                     try {
                         doRestart();
                         System.out.println("permission granted in MainActivity");
-                        mapsTabFragment = new MapsTabFragment(lastKnown);
+                        mapsTabFragment = new MapsTabFragment(lastKnown, dataService);
                         locationHandler = new LocationHandler(this);
-                        setupLocationHandlerObservers();
+                        setupObservers();
                     } catch (SecurityException e) {
                         Log.e("Exception: %s", e.getMessage());
                     }
@@ -135,10 +146,10 @@ public class MainActivity extends FragmentActivity implements OnRequestPermissio
         this.finishAffinity();
     }
 
-    private void setupLocationHandlerObservers() {
-        System.out.println(locationHandler);
-        System.out.println(mapsTabFragment);
+    private void setupObservers() {
         locationHandler.addObserver(mapsTabFragment);
-    }
 
+        dataService.addObserver(mapsTabFragment);
+        dataService.addObserver(listTabFragment);
+    }
 }
