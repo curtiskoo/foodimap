@@ -1,4 +1,4 @@
-package com.main.foodimap;
+package com.main.foodimap.Services;
 
 import android.app.Activity;
 import android.content.Context;
@@ -72,7 +72,7 @@ public class LocationHandler extends Observable {
             setChanged();
             notifyObservers(locationManager.getLastKnownLocation(locationManager.getBestProvider(new Criteria(), true)));
         } catch (SecurityException e) {
-            System.out.println(e);
+            e.printStackTrace();
         }
     }
 

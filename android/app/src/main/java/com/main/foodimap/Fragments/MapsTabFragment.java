@@ -1,4 +1,4 @@
-package com.main.foodimap;
+package com.main.foodimap.Fragments;
 
 import android.content.Context;
 import android.location.Location;
@@ -6,6 +6,7 @@ import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.Button;
 import android.widget.Toast;
 
 import androidx.annotation.NonNull;
@@ -23,19 +24,27 @@ import com.google.android.gms.maps.model.CameraPosition;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.MapStyleOptions;
 import com.google.android.gms.maps.model.MarkerOptions;
+import com.main.foodimap.Services.DataService;
+import com.main.foodimap.Services.LocationHandler;
+import com.main.foodimap.R;
 
 import java.util.Observable;
 import java.util.Observer;
 
 public class MapsTabFragment extends Fragment
-        implements OnMapReadyCallback, OnMyLocationButtonClickListener, OnMyLocationClickListener, Observer {
+        implements OnMapReadyCallback, OnMyLocationButtonClickListener, OnMyLocationClickListener,
+        Observer, GoogleMap.OnCameraIdleListener {
 
     private GoogleMap mMap;
     private Boolean locationEnabled = false;
     private Location lastKnown;
     public Context context;
+    private Button searchBtn;
+    private DataService dataService;
 
-    public MapsTabFragment(Location lastKnown) {
+    public MapsTabFragment(Location lastKnown, DataService dataService) {
+        this.dataService = dataService;
+
         if (lastKnown != null) {
             this.lastKnown = lastKnown;
         }
@@ -48,20 +57,30 @@ public class MapsTabFragment extends Fragment
 
         View v = inflater.inflate(R.layout.activity_maps, container, false);
 
-        // Obtain the SupportMapFragment and get notified when the map is ready to be used.
-        SupportMapFragment mapFragment = (SupportMapFragment) getChildFragmentManager().findFragmentById(R.id.map);
-//        mapFragment.getMapAsync(this);
+        // Search Area Button
+        searchBtn = v.findViewById(R.id.searchBtn);
+        setupSearchBtn();
 
+        // Load Map onto this Fragment
+        SupportMapFragment mapFragment = (SupportMapFragment) getChildFragmentManager().findFragmentById(R.id.map);
         if (mapFragment == null) {
             FragmentManager fm = getFragmentManager();
             FragmentTransaction ft = fm.beginTransaction();
             mapFragment = SupportMapFragment.newInstance();
             ft.replace(R.id.map, mapFragment).commit();
         }
-
         mapFragment.getMapAsync(this);
 
         return v;
+    }
+
+    private void setupSearchBtn() {
+        searchBtn.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                dataService.searchButtonClick(mMap.getCameraPosition());
+            }
+        });
     }
 
     @Override
@@ -70,6 +89,7 @@ public class MapsTabFragment extends Fragment
         System.out.println(googleMap);
         System.out.println("context: " + context + getActivity());
         mMap = googleMap;
+        mMap.setOnCameraIdleListener(this);
 
         boolean success = mMap.setMapStyle(new MapStyleOptions(getResources().getString(R.string.map_style_json)));
 
@@ -82,13 +102,11 @@ public class MapsTabFragment extends Fragment
         mMap.addMarker(new MarkerOptions().position(place).title("Marker in Place"));
 
         if (lastKnown != null) {
-            System.out.println(1);
             forceOnSetMyLocation(lastKnown);
             place = new LatLng(lastKnown.getLatitude(), lastKnown.getLongitude());
             mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(place, 15));
             update(new LocationHandler(null), lastKnown);
         } else {
-            System.out.println(2);
             forceOnSetMyLocation(null);
         }
 
@@ -134,7 +152,6 @@ public class MapsTabFragment extends Fragment
 
     private void forceOnSetMyLocation(Location location) {
         try {
-            System.out.println(1);
             mMap.setMyLocationEnabled(true);
             mMap.setOnMyLocationButtonClickListener(this);
             mMap.setOnMyLocationClickListener(this);
@@ -160,6 +177,8 @@ public class MapsTabFragment extends Fragment
             } else {
                 forceOnSetMyLocation((Location) o);
             }
+        } else if (observable instanceof DataService && mMap != null) {
+            System.out.println(o);
         }
     }
 
@@ -168,5 +187,12 @@ public class MapsTabFragment extends Fragment
         this.lastKnown = lastKnown;
         updateLocationUI(lastKnown);
         this.locationEnabled = true;
+    }
+
+    @Override
+    public void onCameraIdle() {
+        System.out.println("Camera Idle");
+
+        searchBtn.setVisibility(View.VISIBLE);
     }
 }
