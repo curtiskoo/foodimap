@@ -50,10 +50,13 @@ public class LocationHandler extends Observable {
             @Override
             public void onLocationResult(LocationResult locationResult) {
 //                super.onLocationResult(locationResult);
-                lastLocation = locationResult.getLastLocation();
-//                System.out.println(lastLocation);
-                setChanged();
-                notifyObservers(lastLocation);
+                System.out.println("Location Result: " + locationResult);
+                System.out.println("Mock: " + locationResult.getLastLocation().isFromMockProvider());
+                if (!locationResult.getLastLocation().isFromMockProvider()) {
+                    lastLocation = locationResult.getLastLocation();
+                    setChanged();
+                    notifyObservers(lastLocation);
+                }
             }
         };
 

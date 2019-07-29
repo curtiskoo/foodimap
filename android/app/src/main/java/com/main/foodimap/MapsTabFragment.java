@@ -109,7 +109,7 @@ public class MapsTabFragment extends Fragment
     }
 
 
-    private void updateLocationUI(Location location) {
+    public void updateLocationUI(Location location) {
         System.out.println("here in new updatelocationui");
         if (mMap == null) {
             return;
@@ -168,5 +168,9 @@ public class MapsTabFragment extends Fragment
         if (currLocation != null) {
             this.currLocation = currLocation;
         }
+    }
+
+    public Location getCurrLocation() {
+        return this.currLocation;
     }
 }
