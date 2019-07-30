@@ -99,6 +99,9 @@ public class MainActivity extends FragmentActivity implements OnRequestPermissio
                                 lastKnown = location;
                                 mapsTabFragment.setLastKnown(lastKnown);
                             }
+                            if (location == null) {
+                                doRestart();
+                            }
                         }
                     });
         } catch (SecurityException e) {
@@ -136,6 +139,9 @@ public class MainActivity extends FragmentActivity implements OnRequestPermissio
         System.out.println("hasFocus: " + hasFocus);
         if (hasFocus) {
             if (mapsTabFragment != null) {
+                if (mapsTabFragment.getCurrLocation() == null) {
+                    getFusedCurrentLocation();
+                }
                 mapsTabFragment.updateLocationUI(mapsTabFragment.getCurrLocation());
             } else {
                 getFusedCurrentLocation();
