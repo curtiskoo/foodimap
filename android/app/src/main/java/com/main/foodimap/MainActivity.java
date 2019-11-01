@@ -15,6 +15,8 @@ import android.location.LocationManager;
 import android.os.Bundle;
 import android.util.Log;
 
+import com.android.volley.RequestQueue;
+import com.android.volley.toolbox.Volley;
 import com.google.android.gms.location.FusedLocationProviderClient;
 import com.google.android.gms.location.LocationServices;
 import com.google.android.gms.tasks.OnSuccessListener;
@@ -38,13 +40,16 @@ public class MainActivity extends FragmentActivity implements OnRequestPermissio
     private Location lastKnown;
     private FusedLocationProviderClient fusedLocationClient;
     private static final int PERMISSIONS_REQUEST_ACCESS_FINE_LOCATION = 22;
+    public RequestQueue queue;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        dataService = new DataService();
+        queue = Volley.newRequestQueue(this);
+        dataService = new DataService(queue);
+
 
         fusedLocationClient = LocationServices.getFusedLocationProviderClient(this);
 

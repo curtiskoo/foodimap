@@ -90,6 +90,9 @@ public class MapsTabFragment extends Fragment
         System.out.println("context: " + context + getActivity());
         mMap = googleMap;
         mMap.setOnCameraIdleListener(this);
+        mMap.setMinZoomPreference(15); // set this for zoom
+        mMap.setMaxZoomPreference(15); // set this for zoom
+
 
         boolean success = mMap.setMapStyle(new MapStyleOptions(getResources().getString(R.string.map_style_json)));
 
@@ -134,20 +137,20 @@ public class MapsTabFragment extends Fragment
         if (mMap == null) {
             return;
         }
-        if (location != null) {
-            if (!locationEnabled) {
-                LatLng temp = new LatLng(location.getLatitude(), location.getLongitude());
-                mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(temp, 15));
-                return;
-            }
-            mMap.animateCamera(CameraUpdateFactory.newLatLngZoom(new LatLng(location.getLatitude(), location.getLongitude()), 13));
-
-            CameraPosition cameraPosition = new CameraPosition.Builder()
-                    .target(new LatLng(location.getLatitude(), location.getLongitude()))      // Sets the center of the map to location user
-                    .zoom(15)                   // Sets the zoom
-                    .build();                   // Creates a CameraPosition from the builder
-            mMap.animateCamera(CameraUpdateFactory.newCameraPosition(cameraPosition));
-        }
+//        if (location != null) {
+//            if (!locationEnabled) {
+//                LatLng temp = new LatLng(location.getLatitude(), location.getLongitude());
+//                mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(temp, 15));
+//                return;
+//            }
+//            mMap.animateCamera(CameraUpdateFactory.newLatLngZoom(new LatLng(location.getLatitude(), location.getLongitude()), 13));
+//
+//            CameraPosition cameraPosition = new CameraPosition.Builder()
+//                    .target(new LatLng(location.getLatitude(), location.getLongitude()))      // Sets the center of the map to location user
+//                    .zoom(15)                   // Sets the zoom
+//                    .build();                   // Creates a CameraPosition from the builder
+//            mMap.animateCamera(CameraUpdateFactory.newCameraPosition(cameraPosition));
+//        }
     }
 
     private void forceOnSetMyLocation(Location location) {
@@ -178,7 +181,6 @@ public class MapsTabFragment extends Fragment
                 forceOnSetMyLocation((Location) o);
             }
         } else if (observable instanceof DataService && mMap != null) {
-            System.out.println(o);
         }
     }
 
