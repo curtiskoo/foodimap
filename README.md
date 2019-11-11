@@ -11,6 +11,6 @@ Geolocation API Server
 
 Main Tabs:
 <br/>
-<img src="https://user-images.githubusercontent.com/36326572/68007051-b74a2000-fc37-11e9-916e-159f92eaa7a4.jpg" width="400">
-<img src="https://user-images.githubusercontent.com/36326572/68007073-bc0ed400-fc37-11e9-8d95-315dacf491c1.jpg" width="400">
+<img src="https://user-images.githubusercontent.com/36326572/68554114-113aaa80-03db-11ea-8ea1-dd94cd4adf90.jpg" width="400">
+<img src="https://user-images.githubusercontent.com/36326572/68554113-0ed85080-03db-11ea-9991-c2bc2f58218d.jpg" width="400">
 
