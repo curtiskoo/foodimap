@@ -1,6 +1,10 @@
 package com.main.foodimap.Fragments;
 
 import android.content.Context;
+import android.graphics.Bitmap;
+import android.graphics.Color;
+import android.graphics.drawable.ColorDrawable;
+import android.graphics.drawable.Drawable;
 import android.location.Location;
 import android.os.Bundle;
 import android.view.LayoutInflater;
@@ -20,14 +24,22 @@ import com.google.android.gms.maps.GoogleMap.OnMyLocationButtonClickListener;
 import com.google.android.gms.maps.GoogleMap.OnMyLocationClickListener;
 import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.SupportMapFragment;
+import com.google.android.gms.maps.model.BitmapDescriptorFactory;
 import com.google.android.gms.maps.model.CameraPosition;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.MapStyleOptions;
+import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
+import com.google.maps.android.ui.IconGenerator;
+import com.main.foodimap.Controller.MapMarkersHandler;
+import com.main.foodimap.Controller.Restaurant;
 import com.main.foodimap.Services.DataService;
 import com.main.foodimap.Services.LocationHandler;
 import com.main.foodimap.R;
 
+
+import java.lang.reflect.Array;
+import java.util.ArrayList;
 import java.util.Observable;
 import java.util.Observer;
 
@@ -41,6 +53,9 @@ public class MapsTabFragment extends Fragment
     public Context context;
     private Button searchBtn;
     private DataService dataService;
+    private MapMarkersHandler mapMarkersHandler;
+    private static final Drawable TRANSPARENT_DRAWABLE = new ColorDrawable(Color.TRANSPARENT);
+
 
     public MapsTabFragment(Location lastKnown, DataService dataService) {
         this.dataService = dataService;
@@ -100,13 +115,12 @@ public class MapsTabFragment extends Fragment
             System.out.println("Failed");
         }
 
-        LatLng place = new LatLng(49.223480, -123.080777);
+        mapMarkersHandler = new MapMarkersHandler(mMap, getContext()); // this sets up handler for new data updates
 
-        mMap.addMarker(new MarkerOptions().position(place).title("Marker in Place"));
 
         if (lastKnown != null) {
             forceOnSetMyLocation(lastKnown);
-            place = new LatLng(lastKnown.getLatitude(), lastKnown.getLongitude());
+            LatLng place = new LatLng(lastKnown.getLatitude(), lastKnown.getLongitude());
             mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(place, 15));
             update(new LocationHandler(null), lastKnown);
         } else {
@@ -132,35 +146,12 @@ public class MapsTabFragment extends Fragment
     }
 
 
-    private void updateLocationUI(Location location) {
-        System.out.println("here in new updatelocationui");
-        if (mMap == null) {
-            return;
-        }
-//        if (location != null) {
-//            if (!locationEnabled) {
-//                LatLng temp = new LatLng(location.getLatitude(), location.getLongitude());
-//                mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(temp, 15));
-//                return;
-//            }
-//            mMap.animateCamera(CameraUpdateFactory.newLatLngZoom(new LatLng(location.getLatitude(), location.getLongitude()), 13));
-//
-//            CameraPosition cameraPosition = new CameraPosition.Builder()
-//                    .target(new LatLng(location.getLatitude(), location.getLongitude()))      // Sets the center of the map to location user
-//                    .zoom(15)                   // Sets the zoom
-//                    .build();                   // Creates a CameraPosition from the builder
-//            mMap.animateCamera(CameraUpdateFactory.newCameraPosition(cameraPosition));
-//        }
-    }
 
     private void forceOnSetMyLocation(Location location) {
         try {
             mMap.setMyLocationEnabled(true);
             mMap.setOnMyLocationButtonClickListener(this);
             mMap.setOnMyLocationClickListener(this);
-            if (location != null) {
-                updateLocationUI(location);
-            }
             locationEnabled = true;
         } catch (SecurityException e) {
             System.out.println(e);
@@ -181,13 +172,15 @@ public class MapsTabFragment extends Fragment
                 forceOnSetMyLocation((Location) o);
             }
         } else if (observable instanceof DataService && mMap != null) {
+            if (o instanceof ArrayList<?>) {
+                mapMarkersHandler.addMarkers((ArrayList<Restaurant>) o);
+            }
         }
     }
 
     public void setLastKnown(Location lastKnown) {
         this.locationEnabled = false;
         this.lastKnown = lastKnown;
-        updateLocationUI(lastKnown);
         this.locationEnabled = true;
     }
 

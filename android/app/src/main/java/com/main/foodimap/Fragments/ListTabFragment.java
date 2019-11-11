@@ -11,6 +11,7 @@ import android.widget.ListView;
 import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
 
+import com.main.foodimap.Controller.Restaurant;
 import com.main.foodimap.MainActivity;
 import com.main.foodimap.R;
 import com.main.foodimap.Services.DataService;
@@ -54,41 +55,23 @@ public class ListTabFragment extends Fragment implements Observer {
     @Override
     public void update(Observable observable, Object o) {
         if (observable instanceof DataService) {
-            if (o instanceof JSONObject) {
-                ArrayList<String> listdata = getArrayFromRestaurantJSON((JSONObject) o);
+            if (o instanceof ArrayList<?>) {
+                ArrayList<String> listdata = getArrayFromRestaurantJSON((ArrayList<Restaurant>) o);
                 listViewAdapter.clear();
                 listViewAdapter.addAll(listdata);
                 listViewAdapter.notifyDataSetChanged();
             }
         }
-
-        System.out.println("In List Tab Fragment");
     }
 
-    private ArrayList<String> getArrayFromRestaurantJSON(JSONObject results) {
+    private ArrayList<String> getArrayFromRestaurantJSON(ArrayList<Restaurant> results) {
         ArrayList<String> listdata = new ArrayList<>();
-        JSONArray resultsArray;
-        try {
-            resultsArray = results.getJSONArray("result");
-            System.out.println(resultsArray);
-        } catch (JSONException e) {
-            resultsArray = new JSONArray();
-        }
-        for (int i=0; i<resultsArray.length(); i++) {
-            try {
-                listdata.add(getStringFromRestaurantJSON(resultsArray.getJSONObject(i)));
-            } catch (JSONException e) {
-                continue;
-            }
+
+        for (int i = 0; i < results.size(); i++) {
+            listdata.add(results.get(i).name);
         }
         return listdata;
     }
 
-    private String getStringFromRestaurantJSON(JSONObject json) {
-        try {
-            return json.getString("name");
-        } catch (JSONException e) {
-            return null;
-        }
-    }
+
 }
